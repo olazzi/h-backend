@@ -9,7 +9,7 @@ import {
 import { Follow } from '../follow/follow.entity';
 import { Post } from '../post/post.entity';
 import { Like } from '../like/like.entity';
-import { Comment } from '../comments/comments.entity';
+import { Comment } from '../comment/comment.entity';
 
 @Entity('users') // Maps this class to the 'users' table in the database
 export class User {

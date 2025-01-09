@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './users/user.module';
 import { AuthModule } from './auth/auth.module';
-import { CommentsModule } from './comments/comment.module';
+import { CommentsModule } from './comment/comment.module';
 import { LikesModule } from './like/like.module';
 import { FollowsModule } from './follow/follow.module';
 
