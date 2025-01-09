@@ -11,7 +11,7 @@ import { AuthController } from './auth.controller';  // Import AuthController
 @Module({
   imports: [
     JwtModule.register({
-      secret: 'your-secret-key',
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1h' },
     }),
     UserModule,  // Add UserModule to imports

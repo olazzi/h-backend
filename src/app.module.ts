@@ -2,7 +2,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './users/user.module';
 import { AuthModule } from './auth/auth.module';
+import { CommentsModule } from './comments/comment.module';
+import { LikesModule } from './like/like.module';
+import { FollowsModule } from './follow/follow.module';
+
+
 import * as dotenv from 'dotenv';
+import { PostModule } from './post/post.module';
 
 dotenv.config();
 
@@ -20,6 +26,11 @@ dotenv.config();
     }),
     UserModule,
     AuthModule,
+    PostModule,
+    CommentsModule,
+    LikesModule,
+    FollowsModule,
+
   ],
   controllers: [],
   providers: [],
