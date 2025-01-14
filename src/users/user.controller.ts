@@ -32,7 +32,7 @@ async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
 
   // Get user by ID
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  //@UseGuards(JwtAuthGuard)
   async getUserById(@Param('id') id: string): Promise<User> {
     return this.userService.getUserById(id);
   }

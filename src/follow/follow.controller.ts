@@ -1,6 +1,7 @@
 import { Controller, Post, Delete, Param, Get } from '@nestjs/common';
 import { FollowsService } from './follow.service';
-
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('follows')
 @Controller('follows')
 export class FollowsController {
   constructor(private readonly followsService: FollowsService) {}
