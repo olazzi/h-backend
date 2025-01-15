@@ -60,4 +60,10 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date; // When the user was last updated
+
+  @Column({ nullable: true })
+  otp: string | null; // Store OTP temporarily (nullable to prevent constraint errors)
+
+  @Column({ nullable: true })
+  otpExpiresAt: Date | null; // Optional: You can store when the OTP expires (nullable to prevent constraint errors)
 }

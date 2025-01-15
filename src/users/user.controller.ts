@@ -4,13 +4,23 @@ import { User } from './user.entity'; // Assuming you have a User entity
 import { ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from '../dto/create-user.dto'; // Assuming you have a DTO for creating users
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 @ApiTags('users')
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   // Create a new user
- 
+  @Post('verify-otp')
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    // Verify the OTP entered by the user
+    const user = await this.userService.verifyOtp(verifyOtpDto.otp);
+    if (!user) {
+      throw new Error('Invalid OTP');
+    }
+
+    return { message: 'OTP verified successfully!' };
+  }
 
 @Post()
 async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {

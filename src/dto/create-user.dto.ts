@@ -21,4 +21,11 @@ export class CreateUserDto {
   @IsOptional()
   @IsString({ message: 'Profile picture must be a string.' })
   profilePicture?: string;
+
+  
+}
+
+export class VerifyOtpDto {
+  @IsString()
+  otp: string;
 }
