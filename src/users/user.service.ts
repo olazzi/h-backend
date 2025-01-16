@@ -19,12 +19,7 @@ export class UserService {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
     // Generate a 6-digit OTP
-    const otp = otpGenerator.generate(6, {
-      digits: true,
-      alphabets: false,
-      specialChars: false,
-    });
-
+    const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
     // Set OTP expiration time (10 minutes from now)
     const otpExpiresAt = moment().add(10, 'minutes').toISOString(); // Set expiration to 10 minutes from now
 
@@ -66,6 +61,26 @@ export class UserService {
       console.error('Error sending OTP email:', error);
     }
   }
+  async resendOtpToInactiveUser(user: User): Promise<void> {
+    // Generate a new 6-digit OTP
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+    });
+  
+    // Set a new expiration time for the OTP (10 minutes from now)
+    const otpExpiresAt = moment().add(10, 'minutes').toISOString();
+  
+    // Update the user with the new OTP and expiration time
+    user.otp = otp;
+    user.otpExpiresAt = new Date(otpExpiresAt);
+  
+    await this.userRepository.save(user);
+  
+    // Send OTP to the user's email
+    await this.sendOtpToEmail(user.email, otp);
+  }
   
   async verifyOtp(otp: string): Promise<User | null> {
     const user = await this.userRepository.findOne({ where: { otp } });
@@ -90,6 +105,9 @@ export class UserService {
   }
   async findByUsername(username: string): Promise<User> {
     return this.userRepository.findOne({ where: { username } });
+  }
+  async findByEmail(email: string): Promise<User> {
+    return this.userRepository.findOne({ where: { email } });
   }
     
   // Get user by ID
