@@ -39,6 +39,11 @@ export class AuthController {
       success: true, 
       accessToken, 
       isVerified: true, 
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+    },
       message: 'Login successful' 
     };
   }

@@ -50,8 +50,19 @@ export class UserService {
     const mailOptions = {
       from: `"${process.env.APP_NAME}" <${process.env.GMAIL_USER}>`, // App name in the "from" field
       to: email,
-      subject: `${process.env.APP_NAME} - Your OTP Code`,
-      text: `Your OTP code is: ${otp}. Please use it within the next 10 minutes to verify your account.`,
+      subject: `${process.env.APP_NAME} - Verify Your Account`,
+      text: `Hello,
+  
+  Thank you for signing up with ${process.env.APP_NAME}! To complete your account verification, please use the following One-Time Password (OTP):
+  
+  🔑 **${otp}**
+  
+  This code is valid for the next **10 minutes**. Please do not share this code with anyone for your security.
+  
+  If you did not request this verification, please ignore this email.
+  
+  Thank you,
+  The ${process.env.APP_NAME} Team`,
     };
   
     try {
@@ -61,6 +72,7 @@ export class UserService {
       console.error('Error sending OTP email:', error);
     }
   }
+  
   async resendOtpToInactiveUser(user: User): Promise<void> {
     // Generate a new 6-digit OTP
     const otp = otpGenerator.generate(6, {
