@@ -48,22 +48,23 @@ export class UserService {
     });
   
     const mailOptions = {
-      from: `"${process.env.APP_NAME}" <${process.env.GMAIL_USER}>`, // App name in the "from" field
+      from: `${process.env.APP_NAME} <${process.env.GMAIL_USER}>`, // App name in the "from" field
       to: email,
-      subject: `${process.env.APP_NAME} - Verify Your Account`,
+      subject: `${process.env.APP_NAME} - Account Verification`,
       text: `Hello,
   
-  Thank you for signing up with ${process.env.APP_NAME}! To complete your account verification, please use the following One-Time Password (OTP):
+  Thank you for signing up with ${process.env.APP_NAME}. Your One-Time Password (OTP) is:
   
-  🔑 **${otp}**
+  ${otp}
   
-  This code is valid for the next **10 minutes**. Please do not share this code with anyone for your security.
+  This code will expire in 10 minutes. Please use it to complete your verification.
   
-  If you did not request this verification, please ignore this email.
+  If you did not request this, please ignore this email.
   
-  Thank you,
-  The ${process.env.APP_NAME} Team`,
-    };
+  Best regards,  
+  ${process.env.APP_NAME} Team`
+  };
+  
   
     try {
       await transporter.sendMail(mailOptions);
