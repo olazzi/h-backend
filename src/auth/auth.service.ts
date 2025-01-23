@@ -49,7 +49,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid OTP or OTP has expired');
     }
 
-    // Generate a JWT token for the user once OTP is verified
     const payload = { email: user.email, sub: user.id };
     const token = this.jwtService.sign(payload);
 
