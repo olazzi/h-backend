@@ -17,22 +17,27 @@ export class AuthController {
       // If the user is not found or credentials are incorrect
       throw new BadRequestException('Invalid email or password');
     }
-
+    const accessToken = await this.authService.login(user);
     // Check if the user is verified
     if (!user.isVerified) {
       // If not verified, send OTP for verification
       await this.authService.sendOtp(user); // Ensure OTP service is working properly
-
+      
       // Return success status but indicate the user needs to verify their email
       return { 
         success: true, 
-        isVerified: false, 
+        accessToken,
+        isVerified: false,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+      }, 
         message: 'Please verify your email. OTP has been sent.' 
       };
     }
 
-    // If user is verified, generate the JWT token
-    const accessToken = await this.authService.login(user); // Ensure this method generates a valid JWT
+   
 
     // Return the access token and status of verification
     return { 

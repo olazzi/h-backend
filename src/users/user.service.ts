@@ -7,6 +7,8 @@ import * as bcrypt from 'bcrypt';
 import * as otpGenerator from 'otp-generator';
 import * as nodemailer from 'nodemailer';
 import moment from 'moment';
+import  cloudinary  from '../config/cloudinary.config';
+
 @Injectable()
 export class UserService {
   constructor(
@@ -15,27 +17,42 @@ export class UserService {
   ) {}
 
   // Create a new user
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+ // Create a new user
+ async createUser(createUserDto: CreateUserDto, file: Express.Multer.File): Promise<User> {
+  // Hash password
+  const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
-    // Generate a 6-digit OTP
-    const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
-    // Set OTP expiration time (10 minutes from now)
-    const otpExpiresAt = moment().add(10, 'minutes').toISOString(); // Set expiration to 10 minutes from now
+  // Generate OTP and hash it
+  const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
 
-    // Send OTP to the user's email
-    await this.sendOtpToEmail(createUserDto.email, otp);
 
-    // Create new user with the hashed password and OTP expiration time
-    const newUser = this.userRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
-      otp: otp,  // Store the OTP in the database temporarily
-      otpExpiresAt: otpExpiresAt,  // Store the expiration time of the OTP
+  // Set OTP expiration time (10 minutes from now)
+  const otpExpiresAt = moment().add(10, 'minutes').toISOString();
+
+  // Send OTP to email
+  await this.sendOtpToEmail(createUserDto.email, otp);
+
+  // Upload profile picture to Cloudinary
+  let profilePictureUrl = '';
+  if (file) {
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: 'samples', // Optional: Set folder for storing the images
     });
-
-    return this.userRepository.save(newUser);
+    profilePictureUrl = result.secure_url;
+    
   }
+
+  // Create and save the user
+  const newUser = this.userRepository.create({
+    ...createUserDto,
+    password: hashedPassword,
+    otp: otp, // Save hashed OTP
+    otpExpiresAt,
+    profilePicture: profilePictureUrl,
+  });
+
+  return this.userRepository.save(newUser);
+}
 
 
   private async sendOtpToEmail(email: string, otp: string): Promise<void> {

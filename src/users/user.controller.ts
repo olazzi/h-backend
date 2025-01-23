@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards, UploadedFile, HttpException, HttpStatus, UseInterceptors } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthService } from '../auth/auth.service'; // Add this import
 import { User } from './user.entity'; // Assuming you have a User entity
@@ -6,6 +6,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from '../dto/create-user.dto'; // Assuming you have a DTO for creating users
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import storage from '../config/multer.config';
 @ApiTags('users')
 @Controller('users')
 export class UserController {
@@ -33,11 +35,17 @@ export class UserController {
   }
   
 
-@Post()
-async createUser(@Body() createUserDto: CreateUserDto): Promise<User> {
-  return this.userService.createUser(createUserDto);
-}
-
+  @Post()
+  @UseInterceptors(FileInterceptor('profilePicture', { storage }))
+  async createUser(
+    @Body() createUserDto: CreateUserDto,
+    @UploadedFile() file?: Express.Multer.File, // Optional file argument
+  ): Promise<any> {
+    if (!file) {
+      throw new Error('Missing required parameter - file');
+    }
+    return this.userService.createUser(createUserDto, file);
+  }
 
   // Get all users
   @Get()
