@@ -13,18 +13,18 @@ export class AuthService {
 
  
   async validateUser(email: string, password: string): Promise<any> {
-    
+    // Fetch user from the database by email
     const user = await this.userService.findByEmail(email);
-
+  
     // Check if the user exists and the password is correct
     if (user && (await bcrypt.compare(password, user.password))) {
-      // Exclude password from the result
+      // Exclude the password from the result and return the user data
       const { password, ...result } = user;
       return result;
     }
-
-    // Throw an UnauthorizedException if invalid
-    throw new UnauthorizedException('Invalid email or password');
+  
+    // Return null if the credentials are incorrect
+    return null;
   }
 
   // Send OTP to inactive user

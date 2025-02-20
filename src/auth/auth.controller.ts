@@ -12,10 +12,13 @@ export class AuthController {
   async login(@Body() loginDto: LoginDto) {
     // Validate the user with the provided credentials (email/password)
     const user = await this.authService.validateUser(loginDto.email, loginDto.password);
-
     if (!user) {
-      // If the user is not found or credentials are incorrect
-      throw new BadRequestException('Invalid email or password');
+      // If the user is not found or credentials are incorrect, return a custom error message
+      return {
+        isVerified: false,
+        success: false,
+        message: 'Invalid email or password. Please check your credentials and try again.',
+      };
     }
     const accessToken = await this.authService.login(user);
     // Check if the user is verified

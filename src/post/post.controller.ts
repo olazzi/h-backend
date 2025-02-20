@@ -1,9 +1,10 @@
-import { Controller, Post, Body, Get, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body,UploadedFile, Get, Param, Delete, UseInterceptors } from '@nestjs/common';
 import { PostService } from './post.service';
 import { Post as PostEntity } from './post.entity';
 import { CreatePostDto } from './dto/create-post.dto'; // Import the DTO
 import { ApiTags } from '@nestjs/swagger';
-
+import { FileInterceptor } from '@nestjs/platform-express';
+import storage from '../config/multer.config';
 @ApiTags('posts')
 @Controller('posts')
 export class PostController {
@@ -11,10 +12,19 @@ export class PostController {
 
   // Create a new post with the DTO
   @Post()
-  async create(@Body() postData: CreatePostDto) {  // Use CreatePostDto here
-    return this.postService.create(postData);
+  @UseInterceptors(FileInterceptor('image',{storage}))
+  async create(
+    @Body() createPostDto: CreatePostDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ): Promise<PostEntity> {
+    console.log("📥 Received request at /posts");
+    console.log("Request body:", createPostDto);
+    console.log("Uploaded file:", file);
+    return this.postService.create(createPostDto, file);
   }
 
+   
+  
   // Get all posts
   @Get()
   async findAll() {

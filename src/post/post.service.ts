@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Post as PostEntity } from './post.entity';
 import { User } from '../users/user.entity';
 import { CreatePostDto } from './dto/create-post.dto';  // Import DTO
-
+import  cloudinary  from '../config/cloudinary.config';
 @Injectable()
 export class PostService {
   constructor(
@@ -14,25 +14,50 @@ export class PostService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  // Create a new post using the DTO
-  async create(createPostDto: CreatePostDto): Promise<PostEntity> {
-    const { authorId, content, imageUrl, videoUrl } = createPostDto;
+  async create(createPostDto: CreatePostDto, file?: Express.Multer.File): Promise<PostEntity> {
+    const { authorId, content } = createPostDto;
+
+    console.log("Received post creation request:");
+    console.log("Author ID:", authorId);
+    console.log("Content:", content);
+    console.log("File received:", file ? file.originalname : "No file uploaded");
 
     // Ensure the user exists
     const author = await this.userRepository.findOne({ where: { id: authorId } });
     if (!author) {
-      throw new Error('User not found');
+        console.error("Error: User not found with ID", authorId);
+        throw new Error('User not found');
     }
 
+    let imageUrl = '';
+    if (file) {
+        try {
+            console.log("Uploading image to Cloudinary...");
+            const result = await cloudinary.uploader.upload(file.path, {
+                folder: 'samples',
+            });
+            imageUrl = result.secure_url;
+            console.log("Image uploaded successfully:", imageUrl);
+        } catch (uploadError) {
+            console.error("Error uploading image to Cloudinary:", uploadError);
+            throw new Error('Image upload failed');
+        }
+    }
+
+    console.log("Creating post in database...");
     const post = this.postRepository.create({
-      content,
-      imageUrl,
-      videoUrl,
-      author,
+        content,
+        imageUrl,
+        author,
     });
 
-    return this.postRepository.save(post);
-  }
+    const savedPost = await this.postRepository.save(post);
+    console.log("Post saved successfully:", savedPost);
+
+    return savedPost;
+}
+
+  
 
   // Get all posts
   async findAll(): Promise<PostEntity[]> {

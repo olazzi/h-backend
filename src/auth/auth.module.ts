@@ -10,7 +10,7 @@ import { AuthController } from './auth.controller';  // Import AuthController
   imports: [
     JwtModule.register({
       secret: process.env.JWT_SECRET, // Make sure the JWT_SECRET environment variable is set
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '5h' },
     }),
     forwardRef(() => UserModule),  // Use forwardRef to break the circular dependency
   ],
