@@ -15,15 +15,20 @@ export class LikesController {
     return this.likesService.likePost(createLikeDto);
   }
 
-  // Unlike a post
   @Delete(':postId')
-  async unlikePost(@Param('postId') postId: string, @Body() userId: string): Promise<void> {
-    return this.likesService.unlikePost(postId, userId);
+  async unlikePost(@Param('postId') postId: string, @Body() body: { userId: string }): Promise<void> {
+      return this.likesService.unlikePost(postId, body.userId);
   }
+  
 
   // Get all likes for a post
   @Get(':postId')
   async getLikes(@Param('postId') postId: string): Promise<Like[]> {
     return this.likesService.getLikes(postId);
+  }
+
+  @Get('user/:userId')
+  async getLikedPostsByUser(@Param('userId') userId: string): Promise<string[]> {
+    return this.likesService.getLikedPostsByUser(userId);
   }
 }

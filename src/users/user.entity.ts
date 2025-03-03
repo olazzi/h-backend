@@ -4,66 +4,72 @@ import {
   Column, 
   CreateDateColumn, 
   UpdateDateColumn, 
-  OneToMany 
+  OneToMany, 
+  ManyToMany, 
+  JoinTable 
 } from 'typeorm';
 import { Follow } from '../follow/follow.entity';
 import { Post } from '../post/post.entity';
 import { Like } from '../like/like.entity';
 import { Comment } from '../comment/comment.entity';
 
-@Entity('users') // Maps this class to the 'users' table in the database
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string; // Universally unique identifier for the user
+  id: string;
 
   @Column({ unique: true })
-  username: string; // User's unique username
+  username: string;
 
   @Column({ unique: true })
-  email: string; // User's unique email address
+  email: string;
 
   @Column()
-  password: string; // Hashed password
+  password: string;
 
   @Column({ nullable: true })
-  bio: string; // Optional user bio
+  bio: string;
 
   @Column({ nullable: true })
-  profilePicture: string; // URL for the user's profile picture
+  profilePicture: string;
 
   @Column({ default: false })
-  isVerified: boolean; // Whether the user is verified (default: false)
+  isVerified: boolean;
 
   @Column({ default: 'user' })
-  role: string; // User role (e.g., 'user', 'admin')
+  role: string;
 
   @OneToMany(() => Follow, (follow) => follow.follower, { cascade: true })
-  following: Follow[]; // Users this user is following
+  following: Follow[];
 
   @OneToMany(() => Follow, (follow) => follow.following, { cascade: true })
-  followers: Follow[]; // Users following this user
+  followers: Follow[];
 
   @OneToMany(() => Post, (post) => post.author, { cascade: true })
-  posts: Post[]; // Posts created by this user
+  posts: Post[];
 
   @OneToMany(() => Like, (like) => like.user, { cascade: true })
-  likes: Like[]; // Posts liked by this user
+  likes: Like[];
 
   @OneToMany(() => Comment, (comment) => comment.user, { cascade: true })
-  comments: Comment[]; // Comments made by this user
+  comments: Comment[];
+
+  @ManyToMany(() => Post, { cascade: true }) 
+  @JoinTable({ name: 'saved_posts' }) 
+  savedPosts: Post[];
 
   @Column({ default: true })
-  isActive: boolean; // Whether the user account is active
+  isActive: boolean;
 
   @CreateDateColumn()
-  createdAt: Date; // When the user was created
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date; // When the user was last updated
+  updatedAt: Date;
 
   @Column({ nullable: true })
-  otp: string | null; // Store OTP temporarily (nullable to prevent constraint errors)
+  otp: string | null;
 
   @Column({ nullable: true })
-  otpExpiresAt: Date | null; // Optional: You can store when the OTP expires (nullable to prevent constraint errors)
+  otpExpiresAt: Date | null;
 }
