@@ -41,11 +41,9 @@ export class UserController {
     @Body() createUserDto: CreateUserDto,
     @UploadedFile() file?: Express.Multer.File, // Optional file argument
   ): Promise<any> {
-    if (!file) {
-      throw new Error('Missing required parameter - file');
-    }
     return this.userService.createUser(createUserDto, file);
   }
+  
 
   // Get all users
   @Get()

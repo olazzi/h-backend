@@ -16,43 +16,68 @@ export class UserService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  // Create a new user
- // Create a new user
- async createUser(createUserDto: CreateUserDto, file: Express.Multer.File): Promise<User> {
-  // Hash password
-  const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-
-  // Generate OTP and hash it
-  const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
-
-
-  // Set OTP expiration time (10 minutes from now)
-  const otpExpiresAt = moment().add(10, 'minutes').toISOString();
-
-  // Send OTP to email
-  await this.sendOtpToEmail(createUserDto.email, otp);
-
-  // Upload profile picture to Cloudinary
-  let profilePictureUrl = '';
-  if (file) {
-    const result = await cloudinary.uploader.upload(file.path, {
-      folder: 'samples', // Optional: Set folder for storing the images
+  async createUser(createUserDto: CreateUserDto, file?: Express.Multer.File): Promise<{ success: boolean; message: string; error?: string; user?: User }> {
+    // Check if username or email already exists
+    const existingUser = await this.userRepository.findOne({
+        where: [{ username: createUserDto.username }, { email: createUserDto.email }],
     });
-    profilePictureUrl = result.secure_url;
-    
-  }
 
-  // Create and save the user
-  const newUser = this.userRepository.create({
-    ...createUserDto,
-    password: hashedPassword,
-    otp: otp, // Save hashed OTP
-    otpExpiresAt,
-    profilePicture: profilePictureUrl,
-  });
+    if (existingUser) {
+        return {
+            success: false,
+            message: 'User registration failed',
+            error: 'Username or email is already in use',
+        };
+    }
 
-  return this.userRepository.save(newUser);
+    // Check if file (profile picture) is missing
+    if (!file) {
+        return {
+            success: false,
+            message: 'User registration failed',
+            error: 'Profile picture is required',
+        };
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+    // Generate OTP
+    const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
+
+    // Set OTP expiration time (10 minutes from now)
+    const otpExpiresAt = moment().add(10, 'minutes').toISOString();
+
+    // Send OTP to email
+    await this.sendOtpToEmail(createUserDto.email, otp);
+
+    // Upload profile picture to Cloudinary
+    let profilePictureUrl = '';
+    if (file) {
+        const result = await cloudinary.uploader.upload(file.path, {
+            folder: 'samples', // Optional: Set folder for storing the images
+        });
+        profilePictureUrl = result.secure_url;
+    }
+
+    // Create and save the user
+    const newUser = this.userRepository.create({
+        ...createUserDto,
+        password: hashedPassword,
+        otp,
+        otpExpiresAt,
+        profilePicture: profilePictureUrl,
+    });
+
+    await this.userRepository.save(newUser);
+
+    return {
+        success: true,
+        message: 'User registered successfully',
+        user: newUser,
+    };
 }
+
 
 
   private async sendOtpToEmail(email: string, otp: string): Promise<void> {
