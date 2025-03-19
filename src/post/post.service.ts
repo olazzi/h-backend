@@ -59,22 +59,63 @@ export class PostService {
   }
 
   // Get all posts
-  async findAll(): Promise<PostEntity[]> {
-    return this.postRepository.find({ relations: ['author'] });
+  async findAll(): Promise<any[]> {
+    const posts = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('post.likes', 'likes')
+      .loadRelationCountAndMap('post.commentCount', 'post.comments') // ✅ Count comments
+      .orderBy('post.createdAt', 'DESC')
+      .getMany();
+  
+    return posts.map((post) => ({
+      id: post.id,
+      content: post.content,
+      imageUrl: post.imageUrl,
+      videoUrl: post.videoUrl,
+      createdAt: post.createdAt,
+      author: {
+        id: post.author.id,
+        username: post.author.username,
+        profilePicture: post.author.profilePicture,
+      },
+      likeCount: post.likes.length,
+      commentCount: post['commentCount'], // ✅ Ensure commentCount is included
+    }));
   }
+  
 
   // Get all posts with pagination
-  async findAllPaginated(page: number, limit: number): Promise<PostEntity[]> {
+  async findAllPaginated(page: number, limit: number): Promise<any[]> {
     const skip = (page - 1) * limit;
     console.log(`Fetching posts: page ${page}, limit ${limit}, skip ${skip}`);
-    return this.postRepository.find({
-      relations: ['author'],
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+  
+    const posts = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('post.likes', 'likes')
+      .loadRelationCountAndMap('post.commentCount', 'post.comments') // ✅ Count comments
+      .orderBy('post.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getMany();
+  
+    return posts.map((post) => ({
+      id: post.id,
+      content: post.content,
+      imageUrl: post.imageUrl,
+      videoUrl: post.videoUrl,
+      createdAt: post.createdAt,
+      author: {
+        id: post.author.id,
+        username: post.author.username,
+        profilePicture: post.author.profilePicture,
+      },
+      likeCount: post.likes.length,
+      commentCount: post['commentCount'], // ✅ Ensure commentCount is included
+    }));
   }
-
+  
   // Get posts by author without pagination
   async findByAuthorId(authorId: string): Promise<PostEntity[]> {
     return this.postRepository.find({
@@ -85,23 +126,65 @@ export class PostService {
   }
 
   // Get posts by author with pagination
-  async findByAuthorIdPaginated(authorId: string, page: number, limit: number): Promise<PostEntity[]> {
+  async findByAuthorIdPaginated(authorId: string, page: number, limit: number): Promise<any[]> {
     const skip = (page - 1) * limit;
     console.log(`Fetching posts for author ${authorId}: page ${page}, limit ${limit}, skip ${skip}`);
-    return this.postRepository.find({
-      where: { author: { id: authorId } },
-      relations: ['author', 'comments', 'likes'],
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+  
+    const posts = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('post.likes', 'likes')
+      .where('post.author.id = :authorId', { authorId })
+      .loadRelationCountAndMap('post.commentCount', 'post.comments') // ✅ Count comments
+      .orderBy('post.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getMany();
+  
+    return posts.map((post) => ({
+      id: post.id,
+      content: post.content,
+      imageUrl: post.imageUrl,
+      videoUrl: post.videoUrl,
+      createdAt: post.createdAt,
+      author: {
+        id: post.author.id,
+        username: post.author.username,
+        profilePicture: post.author.profilePicture,
+      },
+      likeCount: post.likes.length,
+      commentCount: post['commentCount'], // ✅ Ensure commentCount is included
+    }));
   }
-
+  
   // Get a single post by ID
-  async findOne(id: string): Promise<PostEntity | undefined> {
-    return this.postRepository.findOne({ where: { id }, relations: ['author'] });
+  async findOne(id: string): Promise<any | undefined> {
+    const post = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('post.likes', 'likes')
+      .where('post.id = :id', { id })
+      .loadRelationCountAndMap('post.commentCount', 'post.comments') // ✅ Count comments
+      .getOne();
+  
+    if (!post) return undefined;
+  
+    return {
+      id: post.id,
+      content: post.content,
+      imageUrl: post.imageUrl,
+      videoUrl: post.videoUrl,
+      createdAt: post.createdAt,
+      author: {
+        id: post.author.id,
+        username: post.author.username,
+        profilePicture: post.author.profilePicture,
+      },
+      likeCount: post.likes.length,
+      commentCount: post['commentCount'], // ✅ Ensure commentCount is included
+    };
   }
-
+  
   // Delete a post by ID
   async delete(id: string): Promise<void> {
     const post = await this.postRepository.findOne({ where: { id } });
