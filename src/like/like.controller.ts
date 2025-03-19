@@ -1,4 +1,4 @@
-import { Controller, Post, Delete, Param, Get, Body } from '@nestjs/common';
+import { Controller, Post, Delete, Param, Get, Body, BadRequestException, Query } from '@nestjs/common';
 import { LikesService } from './like.service';
 import { CreateLikeDto } from './dto/create-like.dto'; // DTO for liking a post
 import { Like } from './like.entity';
@@ -31,4 +31,18 @@ export class LikesController {
   async getLikedPostsByUser(@Param('userId') userId: string): Promise<string[]> {
     return this.likesService.getLikedPostsByUser(userId);
   }
+
+  @Get()
+  async getLikesForMultiplePosts(@Query('postIds') postIds: string) {
+    if (!postIds) {
+      throw new BadRequestException('No postIds provided');
+    }
+
+    const postIdArray = postIds.split(','); // Convert "id1,id2" to array
+
+    console.log('🔄 Fetching likes for multiple posts:', postIdArray);
+
+    return this.likesService.getMultiplePostLikes(postIdArray);
+  }
+
 }

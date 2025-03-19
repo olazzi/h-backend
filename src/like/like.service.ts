@@ -63,7 +63,25 @@ export class LikesService {
       relations: ['user', 'post'],
     });
   }
-
+  async getMultiplePostLikes(postIds: string[]): Promise<Record<string, number>> {
+    const likes = await this.likeRepository
+      .createQueryBuilder('like')
+      .select('like.postId', 'postId')
+      .addSelect('COUNT(like.id)', 'count')
+      .where('like.postId IN (:...postIds)', { postIds })
+      .groupBy('like.postId')
+      .getRawMany();
+  
+    // Convert DB result into { postId1: count, postId2: count }
+    const likeCounts = postIds.reduce((acc, id) => {
+      const likeData = likes.find((like) => like.postId === id);
+      acc[id] = likeData ? parseInt(likeData.count, 10) : 0;
+      return acc;
+    }, {} as Record<string, number>);
+  
+    return likeCounts;
+  }
+  
   // ✅ Get all posts liked by a specific user
   async getLikedPostsByUser(userId: string): Promise<string[]> {
     // Ensure user exists
